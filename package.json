@@ -1,8 +1,8 @@
 {
-  "name": "assembly-app",
+  "name": "giindan-website",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://giindan.github.io/assembly-app/",
+  "homepage": "https://allgiindan.github.io/Giindan_Website/",
   "type": "module",
   "scripts": {
     "dev": "npm run build:css && vite",

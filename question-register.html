@@ -4,10 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>一般質問登録 | 参政党議員団</title>
-    <link rel="stylesheet" href="%BASE%style.css" />
+    <link rel="stylesheet" href="/style.css" />
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script type="module" src="/config.js"></script>
     <script>
-      window.APP_CONFIG = {
+      window.APP_CONFIG = window.APP_CONFIG || {
         SUPABASE_URL: "%VITE_SUPABASE_URL%",
         SUPABASE_ANON_KEY: "%VITE_SUPABASE_ANON_KEY%"
       };
