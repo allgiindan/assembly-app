@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build:css && vite",
-    "build": "npm run build:css && vite build",
+    "build": "npm run build:css && vite build && npm run copy:html",
     "build:css": "tailwindcss -i ./src/index.css -o ./public/style.css --minify",
+    "copy:html": "cp question-search.html question-register.html member-search.html dist/",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
