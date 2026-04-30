@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>議員検索 | 参政党議員団</title>
+    <link rel="stylesheet" href="%BASE%style.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script type="module" src="%BASE%config.js"></script>
+    <script>
+      window.APP_CONFIG = window.APP_CONFIG || {
+        SUPABASE_URL: "%VITE_SUPABASE_URL%",
+        SUPABASE_ANON_KEY: "%VITE_SUPABASE_ANON_KEY%"
+      };
+    </script>
+    <style>
+        body { font-family: 'Meiryo', 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'ＭＳ Ｐゴシック', 'MS PGothic', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #ff8c00; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-[#fafafa] text-[#102a43] min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+                <p class="text-xs uppercase tracking-[0.35em] text-orange-600 font-black mb-2">議員検索</p>
+                <h1 class="text-3xl md:text-4xl font-black">参政党議員団プロフィール検索</h1>
+                <p class="text-sm text-slate-500 mt-2">都道府県・議員名・制度区分で検索できます。</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">ポータルに戻る</a>
+            </div>
+        </div>
+
+        <div id="status" class="rounded-3xl border border-orange-100 bg-orange-50 px-5 py-4 text-sm text-orange-900 mb-6 hidden"></div>
+
+        <div class="bg-white rounded-[2rem] shadow-lg border border-slate-100 p-6 mb-8">
+            <div class="grid gap-4 md:grid-cols-[1.4fr_0.6fr] items-center">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">検索キーワード</label>
+                    <input id="searchInput" type="search" placeholder="議員名・都道府県・役職で検索..." class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                </div>
+                <button id="reloadButton" class="w-full md:w-auto rounded-3xl bg-[#002a5c] px-6 py-4 text-white font-black text-sm hover:bg-slate-800 transition">一覧を更新</button>
+            </div>
+        </div>
+
+        <div id="results" class="grid gap-4"></div>
+
+        <div id="emptyMessage" class="hidden rounded-[2rem] border border-slate-200 bg-slate-50 px-6 py-10 text-center text-slate-500 font-bold">データが見つかりません。Supabase設定とテーブル名を確認してください。</div>
+    </div>
+
+    <script>
+        const { SUPABASE_URL = "", SUPABASE_ANON_KEY = "" } = window.APP_CONFIG || {};
+        const supabaseClient = SUPABASE_URL && SUPABASE_ANON_KEY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        const statusEl = document.getElementById('status');
+        const searchInput = document.getElementById('searchInput');
+        const resultsEl = document.getElementById('results');
+        const emptyMessageEl = document.getElementById('emptyMessage');
+        const reloadButton = document.getElementById('reloadButton');
+
+        let members = [];
+        let loading = false;
+
+        function showStatus(message, isError = false) {
+            statusEl.textContent = message;
+            statusEl.classList.toggle('hidden', false);
+            statusEl.classList.toggle('bg-red-50', isError);
+            statusEl.classList.toggle('border-red-100', isError);
+            statusEl.classList.toggle('text-red-900', isError);
+            statusEl.classList.toggle('bg-orange-50', !isError);
+            statusEl.classList.toggle('border-orange-100', !isError);
+            statusEl.classList.toggle('text-orange-900', !isError);
+        }
+
+        function hideStatus() {
+            statusEl.classList.add('hidden');
+        }
+
+        function renderMembers(list) {
+            resultsEl.innerHTML = '';
+            if (list.length === 0) {
+                emptyMessageEl.classList.remove('hidden');
+                return;
+            }
+            emptyMessageEl.classList.add('hidden');
+
+            list.forEach((member) => {
+                const card = document.createElement('article');
+                card.className = 'rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-lg';
+
+                const title = document.createElement('div');
+                title.className = 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3';
+                title.innerHTML = `
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">${member.prefecture || '全国'}</p>
+                        <h2 class="text-xl font-black text-[#002a5c]">${member.name || '未登録の議員'}</h2>
+                        <p class="text-sm text-slate-500 mt-1">${member.party || '所属政党なし'} ${member.role || ''}</p>
+                    </div>
+                    <span class="inline-flex items-center rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-[11px] font-bold">${member.district || '選挙区情報なし'}</span>
+                `;
+
+                const description = document.createElement('p');
+                description.className = 'text-sm leading-relaxed text-slate-600 whitespace-pre-wrap';
+                description.textContent = member.profile || member.bio || 'プロフィール情報がありません。';
+
+                card.appendChild(title);
+                card.appendChild(description);
+                resultsEl.appendChild(card);
+            });
+        }
+
+        function normalizeQuery(value) {
+            return value.trim().toLowerCase();
+        }
+
+        function filterMembers(query) {
+            const search = normalizeQuery(query);
+            if (!search) return members;
+            return members.filter((member) => {
+                const values = [member.name, member.prefecture, member.district, member.party, member.role, member.profile, member.bio];
+                return values.some((value) => value && value.toString().toLowerCase().includes(search));
+            });
+        }
+
+        async function fetchMembers() {
+            if (!supabaseClient) {
+                showStatus('Supabase の URL と anon key が未設定です。config.jsまたは.envに値を設定してください。', true);
+                return;
+            }
+
+            loading = true;
+            showStatus('データを読み込み中です...');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('members')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) {
+                    throw error;
+                }
+
+                members = data || [];
+                if (members.length === 0) {
+                    showStatus('メンバーが存在しません。またはテーブル名が異なる可能性があります。', true);
+                } else {
+                    hideStatus();
+                }
+                renderMembers(filterMembers(searchInput.value));
+            } catch (error) {
+                showStatus('データ取得時にエラーが発生しました。テーブル名を確認してください。', true);
+                console.error(error);
+                members = [];
+                renderMembers([]);
+            } finally {
+                loading = false;
+            }
+        }
+
+        searchInput.addEventListener('input', (event) => {
+            renderMembers(filterMembers(event.target.value));
+        });
+
+        reloadButton.addEventListener('click', async () => {
+            await fetchMembers();
+        });
+
+        fetchMembers();
+    </script>
+</body>
+</html>
