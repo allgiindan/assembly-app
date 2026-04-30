@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>一般質問登録 | 参政党議員団</title>
+    <link rel="stylesheet" href="%BASE%style.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+      window.APP_CONFIG = {
+        SUPABASE_URL: "%VITE_SUPABASE_URL%",
+        SUPABASE_ANON_KEY: "%VITE_SUPABASE_ANON_KEY%"
+      };
+    </script>
+    <style>
+        body { font-family: 'Meiryo', 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'ＭＳ Ｐゴシック', 'MS PGothic', sans-serif; background: #fafafa; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #ff8c00; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+                <p class="text-xs uppercase tracking-[0.35em] text-orange-600 font-black mb-2">一般質問登録</p>
+                <h1 class="text-3xl md:text-4xl font-black text-[#102a43]">一般質問登録ページ</h1>
+                <p class="text-sm text-slate-500 mt-2">こちらから一般質問データを新規登録できます。</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">ポータルに戻る</a>
+            </div>
+        </div>
+
+        <div id="status" class="rounded-3xl border border-orange-100 bg-orange-50 px-5 py-4 text-sm text-orange-900 mb-6 hidden"></div>
+
+        <div class="bg-white rounded-[2rem] shadow-lg border border-slate-100 p-6">
+            <div class="flex gap-3 mb-6">
+                <button id="aiModeBtn" type="button" onclick="updateMode('ai')" class="flex-1 rounded-3xl border border-slate-200 bg-[#002a5c] px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">AI分析登録</button>
+                <button id="normalModeBtn" type="button" onclick="updateMode('normal')" class="flex-1 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100">普通の登録</button>
+            </div>
+            <form id="registerForm" class="space-y-4">
+                <div class="grid gap-4 lg:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">質問日</label>
+                        <input id="dateInput" type="date" required class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">議員名</label>
+                        <input id="memberInput" type="text" required placeholder="議員名を入力" class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                    </div>
+                </div>
+
+                <div class="grid gap-4 lg:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">都道府県</label>
+                        <input id="prefInput" type="text" required placeholder="都道府県を入力" class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">市区町村</label>
+                        <input id="cityInput" type="text" required placeholder="市区町村を入力" class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                    </div>
+                </div>
+
+                <div id="originalGroup" class="hidden">
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">原文</label>
+                    <textarea id="originalInput" rows="6" placeholder="原文を入力" class="w-full rounded-[1.75rem] border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition"></textarea>
+                </div>
+
+                <div id="titleGroup">
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">タイトル</label>
+                    <input id="titleInput" type="text" required placeholder="質問タイトルを入力" class="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition" />
+                </div>
+
+                <div id="contentGroup">
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">本文</label>
+                    <textarea id="contentInput" rows="6" required placeholder="本文を入力" class="w-full rounded-[1.75rem] border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="text-sm text-slate-500">入力後に「データを保存」を押して登録します。</div>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-3xl bg-[#002a5c] px-6 py-4 text-white font-black text-sm hover:bg-slate-800 transition">データを保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const { SUPABASE_URL = "", SUPABASE_ANON_KEY = "" } = window.APP_CONFIG || {};
+        const supabaseClient = SUPABASE_URL && SUPABASE_ANON_KEY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        const statusEl = document.getElementById('status');
+        const registerForm = document.getElementById('registerForm');
+        const dateInput = document.getElementById('dateInput');
+        const memberInput = document.getElementById('memberInput');
+        const prefInput = document.getElementById('prefInput');
+        const cityInput = document.getElementById('cityInput');
+        const titleInput = document.getElementById('titleInput');
+        const contentInput = document.getElementById('contentInput');
+        const originalInput = document.getElementById('originalInput');
+        const aiModeBtn = document.getElementById('aiModeBtn');
+        const normalModeBtn = document.getElementById('normalModeBtn');
+        const originalGroup = document.getElementById('originalGroup');
+        const titleGroup = document.getElementById('titleGroup');
+        const contentGroup = document.getElementById('contentGroup');
+        let currentMode = 'normal';
+
+        function showStatus(message, isError = false) {
+            statusEl.textContent = message;
+            statusEl.classList.toggle('hidden', false);
+            statusEl.classList.toggle('bg-red-50', isError);
+            statusEl.classList.toggle('border-red-100', isError);
+            statusEl.classList.toggle('text-red-900', isError);
+            statusEl.classList.toggle('bg-orange-50', !isError);
+            statusEl.classList.toggle('border-orange-100', !isError);
+            statusEl.classList.toggle('text-orange-900', !isError);
+        }
+
+        function hideStatus() {
+            statusEl.classList.add('hidden');
+        }
+
+        function updateMode(mode) {
+            currentMode = mode;
+            if (mode === 'ai') {
+                aiModeBtn.classList.add('bg-[#002a5c]', 'text-white');
+                aiModeBtn.classList.remove('bg-slate-50', 'text-slate-700');
+                normalModeBtn.classList.add('bg-slate-50', 'text-slate-700');
+                normalModeBtn.classList.remove('bg-[#002a5c]', 'text-white');
+                originalGroup.classList.remove('hidden');
+                titleGroup.classList.add('hidden');
+                contentGroup.classList.add('hidden');
+                originalInput.required = true;
+                titleInput.required = false;
+                contentInput.required = false;
+            } else {
+                normalModeBtn.classList.add('bg-[#002a5c]', 'text-white');
+                normalModeBtn.classList.remove('bg-slate-50', 'text-slate-700');
+                aiModeBtn.classList.add('bg-slate-50', 'text-slate-700');
+                aiModeBtn.classList.remove('bg-[#002a5c]', 'text-white');
+                originalGroup.classList.add('hidden');
+                titleGroup.classList.remove('hidden');
+                contentGroup.classList.remove('hidden');
+                originalInput.required = false;
+                titleInput.required = true;
+                contentInput.required = true;
+            }
+        }
+
+        window.updateMode = updateMode;
+
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!supabaseClient) {
+                showStatus('Supabase の URL と anon key が未設定です。config.jsまたは.envに値を設定してください。', true);
+                return;
+            }
+            showStatus('登録中です...');
+
+            const record = {
+                date: dateInput.value,
+                prefecture: prefInput.value.trim(),
+                city: cityInput.value.trim(),
+                member_name: memberInput.value.trim(),
+                title: currentMode === 'ai' ? '' : titleInput.value.trim(),
+                content: currentMode === 'ai' ? originalInput.value.trim() : contentInput.value.trim(),
+            };
+
+            try {
+                const { error } = await supabaseClient.from('questions').insert([record]);
+                if (error) throw error;
+                showStatus('登録が完了しました。', false);
+                registerForm.reset();
+                dateInput.value = new Date().toISOString().split('T')[0];
+                updateMode('normal');
+            } catch (err) {
+                console.error(err);
+                showStatus('保存中にエラーが発生しました。設定とテーブル名を確認してください。', true);
+            }
+        });
+
+        dateInput.value = new Date().toISOString().split('T')[0];
+        hideStatus();
+        updateMode('normal');
+    </script>
+</body>
+</html>

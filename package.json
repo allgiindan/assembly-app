@@ -5,14 +5,16 @@
   "homepage": "https://giindan.github.io/assembly-app/",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npm run build:css && vite",
+    "build": "npm run build:css && vite build",
+    "build:css": "tailwindcss -i ./src/index.css -o ./public/style.css --minify",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.0.0-rc.18",
     "firebase": "^12.12.1",
     "lucide-react": "^1.11.0",
     "react": "^19.2.5",

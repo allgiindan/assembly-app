@@ -11,6 +11,43 @@ Currently, two official plugins are available:
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
+## Environment Setup
+
+This project uses Supabase and Tailwind CSS for the static pages and React app.
+
+1. Copy the `.env` file and replace the placeholders with your real Supabase values:
+
+```text
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Build the Tailwind CSS file before running the app:
+
+```bash
+npm run build:css
+```
+
+4. Start development locally:
+
+```bash
+npm run dev
+```
+
+5. Build the production app:
+
+```bash
+npm run build
+```
+
+The Vite configuration generates `public/config.js` from `.env` for the HTML pages, and the static pages reference `public/style.css` instead of the Tailwind CDN.
+
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
