@@ -22,16 +22,21 @@
 </head>
 <body class="bg-[#fafafa] text-[#102a43] min-h-screen">
     <div class="max-w-6xl mx-auto px-4 py-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-                <p class="text-xs uppercase tracking-[0.35em] text-orange-600 font-black mb-2">議員検索</p>
-                <h1 class="text-3xl md:text-4xl font-black">参政党議員団プロフィール検索</h1>
-                <p class="text-sm text-slate-500 mt-2">都道府県・議員名・制度区分で検索できます。</p>
+        <header class="mb-8 overflow-hidden rounded-[2rem] bg-orange-200 border border-orange-300 shadow-sm">
+            <div class="bg-orange-100 h-1 w-full"></div>
+            <div class="px-6 py-6 sm:px-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.35em] text-orange-700 font-black mb-2">議員検索</p>
+                        <h1 class="text-3xl md:text-4xl font-black">参政党議員団プロフィール検索</h1>
+                        <p class="text-sm text-slate-700 mt-2">都道府県・議員名・制度区分で検索できます。</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-500 transition">ポータルに戻る</a>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-2">
-                <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">ポータルに戻る</a>
-            </div>
-        </div>
+        </header>
 
         <div id="status" class="rounded-3xl border border-orange-100 bg-orange-50 px-5 py-4 text-sm text-orange-900 mb-6 hidden"></div>
 
